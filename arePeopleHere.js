@@ -1,4 +1,5 @@
 
+
 const client = new KintoneRestAPIClient({
   baseUrl: Config.kintone.baseUrl,
   auth: {
@@ -27,7 +28,7 @@ obniz.onconnect = async function () {
       console.log("1名入りました");
       sendToKintone(1, "会議室X");
     } else {
-      console.log("通過なし");
+      console.log("入口通過なし");
     }
   }
 
@@ -39,14 +40,13 @@ obniz.onconnect = async function () {
       return;
     }
 
-    // Create an instance
     const motionBlock = new MESH_100MD(peripheral);
 
-    // Connect to the Motion block
     await motionBlock.connectWait();
     console.log(`connected: ${motionBlock.peripheral.localName}`);
 
-    motionBlock.onSensorEvent = ((motionState) => {
+    while (peripheral.connected) {
+      const motionState = await motionBlock.getSensorDataWait();
       switch (motionState) {
         case MESH_100MD.MotionState.DETECTED: {
           console.log('1名出ました');
@@ -54,7 +54,7 @@ obniz.onconnect = async function () {
           break;
         }
         case MESH_100MD.MotionState.NOT_DETECTED: {
-          console.log('通過なし');
+          console.log('出口通過なし');
           break;
         }
         default: {
@@ -62,12 +62,34 @@ obniz.onconnect = async function () {
           break;
         }
       }
-    });
+      await wait(1 * 1000);
+    }
 
-    // Prepare params
+    // motionBlock.onSensorEvent = (async (motionState) => {
+    //   switch (motionState) {
+    //     case MESH_100MD.MotionState.DETECTED: {
+    //       console.log('1名出ました');
+    //       sendToKintone(1, "会議室Y");
+    //       break;
+    //     }
+    //     case MESH_100MD.MotionState.NOT_DETECTED: {
+    //       console.log('通過なし');
+    //       break;
+    //     }
+    //     default: {
+    //       console.log('データ取得中');
+    //       break;
+    //     }
+    //   }
+    // });
+
     const notifyMode = MESH_100MD.NotifyMode.ALWAYS;
 
-    // Write
     motionBlock.setMode(notifyMode);
   };
 }
+const wait = (ms) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+};
