@@ -7,7 +7,7 @@ const Config = {
     baseUrl: "https://サブドメイン.cybozu.com",
     appId: 5 //https://サブドメイン.cybozu.com/k/n ←nに当たる数字を入力
   },
-  obnizId: "3199-7246",
+  obnizId: "3199-XXXX",
 };
 
 const client = new KintoneRestAPIClient({

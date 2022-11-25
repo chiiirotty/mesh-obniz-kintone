@@ -5,7 +5,7 @@ obniz.onconnect = async function () {
   // obniz人感センサー
   const senseor = obniz.wired("Keyestudio_PIR", { signal: 0, vcc: 1, gnd: 2 });
   senseor.onchange = function (val) {
-    console.log(val ? 'いる' : 'いない');
+    console.log(val ? '通過' : 'いない');
   }
 
   // MESH人感センサー
