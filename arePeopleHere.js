@@ -1,11 +1,34 @@
-const Obniz = require("obniz");
-const obniz = new Obniz("3199-XXXX");
-const MESH_100MD = Obniz.getPartsClass("MESH_100MD");
+
+const client = new KintoneRestAPIClient({
+  baseUrl: Config.kintone.baseUrl,
+  auth: {
+    apiToken: Config.kintone.apiToken,
+  },
+});
+
+const sendToKintone = async (num, roomName) => {
+  await client.record.addRecord({
+    app: Config.kintone.appId,
+    record: {
+      在室人数: { value: num },
+      会議室名: { value: roomName },
+    },
+  });
+};
+
+const obniz = new Obniz(Config.obnizId);
+const MESH_100MD = Obniz.getPartsClass(Config.meshId);
+
 obniz.onconnect = async function () {
   // obniz人感センサー
   const senseor = obniz.wired("Keyestudio_PIR", { signal: 0, vcc: 1, gnd: 2 });
   senseor.onchange = function (val) {
-    console.log(val ? '通過' : 'いない');
+    if (val) {
+      console.log("1名入りました");
+      sendToKintone(1, "会議室X");
+    } else {
+      console.log("通過なし");
+    }
   }
 
   // MESH人感センサー
@@ -23,18 +46,19 @@ obniz.onconnect = async function () {
     await motionBlock.connectWait();
     console.log(`connected: ${motionBlock.peripheral.localName}`);
 
-    motionBlock.onSensorEvent = ((motionState, notifyMode) => {
+    motionBlock.onSensorEvent = ((motionState) => {
       switch (motionState) {
         case MESH_100MD.MotionState.DETECTED: {
-          console.log('Detected !');
+          console.log('1名出ました');
+          sendToKintone(1, "会議室Y");
           break;
         }
         case MESH_100MD.MotionState.NOT_DETECTED: {
-          console.log('Not Detected.');
+          console.log('通過なし');
           break;
         }
         default: {
-          console.log('Starting up...');
+          console.log('データ取得中');
           break;
         }
       }
